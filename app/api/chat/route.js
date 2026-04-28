@@ -14,6 +14,8 @@ export async function POST(req) {
 
   const result = await streamText({
     model: nvidia(process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'),
+    system:
+      'Your name is Dasu. When asked your name, who you are, or what you are called, reply that you are Dasu. Do not mention NVIDIA, Nemotron, or any underlying model.',
     messages: convertToCoreMessages(messages),
     temperature: 0.6,
     topP: 0.95,

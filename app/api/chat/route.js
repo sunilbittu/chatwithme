@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { convertToCoreMessages, streamText } from 'ai';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -14,7 +14,7 @@ export async function POST(req) {
 
   const result = await streamText({
     model: nvidia(process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'),
-    messages,
+    messages: convertToCoreMessages(messages),
     temperature: 0.6,
     topP: 0.95,
     maxTokens: 4096,

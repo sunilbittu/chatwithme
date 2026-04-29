@@ -58,6 +58,31 @@ export default function Page() {
                   className="attachment"
                 />
               ))}
+            {m.toolInvocations?.map((t) => {
+              if (t.toolName !== 'generateImage') return null;
+              if (t.state !== 'result') {
+                return (
+                  <div key={t.toolCallId} className="tool-loading">
+                    Generating image{t.args?.prompt ? `: "${t.args.prompt}"` : '...'}
+                  </div>
+                );
+              }
+              if (t.result?.error) {
+                return (
+                  <div key={t.toolCallId} className="error">
+                    {t.result.error}
+                  </div>
+                );
+              }
+              return (
+                <img
+                  key={t.toolCallId}
+                  src={t.result.imageUrl}
+                  alt={t.result.prompt}
+                  className="attachment generated"
+                />
+              );
+            })}
             {m.content}
           </div>
         ))}

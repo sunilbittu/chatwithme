@@ -196,6 +196,17 @@ body {
   display: block;
 }
 
+.attachment.generated {
+  max-height: 360px;
+}
+
+.tool-loading {
+  font-size: 0.85rem;
+  color: #7a8194;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
 .error {
   color: #f87171;
   font-size: 0.85rem;

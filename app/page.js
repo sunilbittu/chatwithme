@@ -3,6 +3,12 @@
 import { useChat } from 'ai/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+const stripImageData = (text = '') =>
+  text
+    .replace(/!\[[^\]]*\]\(data:image\/[^)]+\)/g, '')
+    .replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+/g, '')
+    .trim();
+
 export default function Page() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
     useChat({ api: '/api/chat' });
@@ -74,16 +80,22 @@ export default function Page() {
                   </div>
                 );
               }
+              const annotation = m.annotations?.find(
+                (a) =>
+                  a?.type === 'generated-image' &&
+                  a?.toolCallId === t.toolCallId
+              );
+              if (!annotation?.imageUrl) return null;
               return (
                 <img
                   key={t.toolCallId}
-                  src={t.result.imageUrl}
-                  alt={t.result.prompt}
+                  src={annotation.imageUrl}
+                  alt={t.args?.prompt || 'generated image'}
                   className="attachment generated"
                 />
               );
             })}
-            {m.content}
+            {stripImageData(m.content)}
           </div>
         ))}
         {error && <div className="error">Error: {error.message}</div>}

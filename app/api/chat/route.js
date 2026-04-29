@@ -2,10 +2,13 @@ import { createOpenAI } from '@ai-sdk/openai';
 import {
   convertToCoreMessages,
   createDataStreamResponse,
+  extractReasoningMiddleware,
   streamText,
   tool,
+  wrapLanguageModel,
 } from 'ai';
 import { z } from 'zod';
+import { nvidiaFetch } from './nvidia-fetch';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -13,6 +16,14 @@ export const maxDuration = 60;
 const nvidia = createOpenAI({
   apiKey: process.env.NVIDIA_API_KEY,
   baseURL: 'https://integrate.api.nvidia.com/v1',
+  fetch: nvidiaFetch,
+});
+
+const chatModel = wrapLanguageModel({
+  model: nvidia(
+    process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'
+  ),
+  middleware: extractReasoningMiddleware({ tagName: 'think' }),
 });
 
 export async function POST(req) {
@@ -80,10 +91,7 @@ export async function POST(req) {
       });
 
       const result = streamText({
-        model: nvidia(
-          process.env.NVIDIA_MODEL ||
-            'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'
-        ),
+        model: chatModel,
         system:
           'Your name is Dasu. When asked your name, who you are, or what you are called, reply that you are Dasu. Do not mention NVIDIA, Nemotron, or any underlying model. ' +
           'When the user asks for an image, picture, drawing, or artwork, call the generateImage tool with a rich descriptive prompt. ' +

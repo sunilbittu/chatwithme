@@ -207,6 +207,64 @@ body {
   padding: 0.5rem 0;
 }
 
+.reasoning {
+  margin: 0 0 0.5rem;
+  border-left: 2px solid #2a3242;
+  border-radius: 4px;
+  background: rgba(122, 129, 148, 0.05);
+}
+
+.reasoning.open {
+  border-left-color: #4a6fc7;
+}
+
+.reasoning-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #9aa0b0;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.reasoning-toggle:hover {
+  color: #c5cad6;
+}
+
+.reasoning-toggle .caret {
+  display: inline-block;
+  width: 0.7rem;
+  font-size: 0.7rem;
+}
+
+.reasoning-len {
+  color: #5c6378;
+  font-size: 0.72rem;
+}
+
+.reasoning-body {
+  padding: 0.2rem 0.7rem 0.6rem;
+  color: #9aa0b0;
+  font-size: 0.85rem;
+  font-style: italic;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.reasoning-body .md {
+  color: #9aa0b0;
+}
+
+.reasoning-body .md p {
+  margin: 0.3rem 0;
+}
+
 .md {
   white-space: normal;
 }

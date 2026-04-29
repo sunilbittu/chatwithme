@@ -10,6 +10,90 @@ const stripImageData = (text = '') =>
     .replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+/g, '')
     .trim();
 
+function extractReasoning(message) {
+  if (!message.parts) return '';
+  return message.parts
+    .filter((p) => p.type === 'reasoning')
+    .map((p) => p.reasoning || p.text || '')
+    .join('');
+}
+
+function extractText(message) {
+  if (!message.parts) return message.content || '';
+  const fromParts = message.parts
+    .filter((p) => p.type === 'text')
+    .map((p) => p.text || '')
+    .join('');
+  return fromParts || message.content || '';
+}
+
+function AssistantMessage({ m }) {
+  const reasoning = extractReasoning(m);
+  const content = extractText(m);
+  const isReasoningOnly = reasoning && !content;
+
+  const [override, setOverride] = useState(null);
+  const open = override ?? isReasoningOnly;
+
+  return (
+    <>
+      {m.toolInvocations?.map((t) => {
+        if (t.toolName !== 'generateImage') return null;
+        if (t.state !== 'result') {
+          return (
+            <div key={t.toolCallId} className="tool-loading">
+              Generating image{t.args?.prompt ? `: "${t.args.prompt}"` : '...'}
+            </div>
+          );
+        }
+        if (t.result?.error) {
+          return (
+            <div key={t.toolCallId} className="error">
+              {t.result.error}
+            </div>
+          );
+        }
+        const annotation = m.annotations?.find(
+          (a) => a?.type === 'generated-image' && a?.toolCallId === t.toolCallId
+        );
+        if (!annotation?.imageUrl) return null;
+        return (
+          <img
+            key={t.toolCallId}
+            src={annotation.imageUrl}
+            alt={t.args?.prompt || 'generated image'}
+            className="attachment generated"
+          />
+        );
+      })}
+
+      {reasoning && (
+        <div className={`reasoning ${open ? 'open' : ''}`}>
+          <button
+            type="button"
+            className="reasoning-toggle"
+            onClick={() => setOverride(!open)}
+            aria-expanded={open}
+          >
+            <span className="caret">{open ? '▾' : '▸'}</span>
+            <span>
+              {isReasoningOnly ? 'Thinking…' : 'Reasoning'}
+              <span className="reasoning-len"> · {reasoning.length} chars</span>
+            </span>
+          </button>
+          {open && (
+            <div className="reasoning-body">
+              <Markdown>{reasoning}</Markdown>
+            </div>
+          )}
+        </div>
+      )}
+
+      {content && <Markdown>{stripImageData(content)}</Markdown>}
+    </>
+  );
+}
+
 export default function Page() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
     useChat({ api: '/api/chat' });
@@ -65,39 +149,8 @@ export default function Page() {
                   className="attachment"
                 />
               ))}
-            {m.toolInvocations?.map((t) => {
-              if (t.toolName !== 'generateImage') return null;
-              if (t.state !== 'result') {
-                return (
-                  <div key={t.toolCallId} className="tool-loading">
-                    Generating image{t.args?.prompt ? `: "${t.args.prompt}"` : '...'}
-                  </div>
-                );
-              }
-              if (t.result?.error) {
-                return (
-                  <div key={t.toolCallId} className="error">
-                    {t.result.error}
-                  </div>
-                );
-              }
-              const annotation = m.annotations?.find(
-                (a) =>
-                  a?.type === 'generated-image' &&
-                  a?.toolCallId === t.toolCallId
-              );
-              if (!annotation?.imageUrl) return null;
-              return (
-                <img
-                  key={t.toolCallId}
-                  src={annotation.imageUrl}
-                  alt={t.args?.prompt || 'generated image'}
-                  className="attachment generated"
-                />
-              );
-            })}
             {m.role === 'assistant' ? (
-              <Markdown>{stripImageData(m.content)}</Markdown>
+              <AssistantMessage m={m} />
             ) : (
               stripImageData(m.content)
             )}

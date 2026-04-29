@@ -96,7 +96,7 @@ export async function POST(req) {
         maxTokens: 4096,
       });
 
-      result.mergeIntoDataStream(dataStream);
+      result.mergeIntoDataStream(dataStream, { sendReasoning: true });
     },
   });
 }

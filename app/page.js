@@ -2,6 +2,7 @@
 
 import { useChat } from 'ai/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Markdown from './Markdown';
 
 const stripImageData = (text = '') =>
   text
@@ -95,7 +96,11 @@ export default function Page() {
                 />
               );
             })}
-            {stripImageData(m.content)}
+            {m.role === 'assistant' ? (
+              <Markdown>{stripImageData(m.content)}</Markdown>
+            ) : (
+              stripImageData(m.content)
+            )}
           </div>
         ))}
         {error && <div className="error">Error: {error.message}</div>}
